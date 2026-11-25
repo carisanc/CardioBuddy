@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CardioBuddy</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23e5484d' d='M12 21s-8-5.2-8-11.2A4.8 4.8 0 0 1 12 7a4.8 4.8 0 0 1 8 2.8C20 15.8 12 21 12 21z'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+<main>
+<div class="top"><span>CardioBuddy <small>de JIMCe Robotics</small></span><span id="badge" class="chip info">Sin conectar</span></div>
+
+<!-- 1. Bienvenida -->
+<section id="v-welcome" class="view">
+  <div class="hero">
+    <svg class="face" viewBox="0 0 240 200" role="img" aria-label="Rostro de CardioBuddy: dos ojos unidos por una línea y un corazón">
+      <ellipse cx="120" cy="104" rx="104" ry="84" fill="#fff" stroke="#cfd9e0" stroke-width="4"/>
+      <circle cx="82" cy="100" r="11" fill="#1f2a37"/><circle cx="158" cy="100" r="11" fill="#1f2a37"/>
+      <line x1="82" y1="100" x2="158" y2="100" stroke="#1f2a37" stroke-width="4" stroke-linecap="round"/>
+      <path d="M120 172c-18-12-32-22-32-36a16 16 0 0 1 32-4 16 16 0 0 1 32 4c0 14-14 24-32 36z" transform="translate(0 -6) scale(.55) translate(98 100)" fill="#e5484d"/>
+    </svg>
+    <h1>Hola, soy CardioBuddy</h1>
+    <p>Un compañero que cuida el corazón de tu hijo o hija. Mide su pulso y su oxígeno, y te avisa si algo se sale de lo normal.</p>
+    <div class="tools center">
+      <button class="btn" id="go-form">Empezar</button>
+      <button class="btn ghost" id="go-dash" hidden>Seguir con el monitoreo</button>
+    </div>
+    <div class="tags"><span>Frecuencia cardíaca</span><span>Oxigenación</span><span>Alertas para la familia</span></div>
+  </div>
+</section>
+
+<!-- 2. Perfil del menor -->
+<section id="v-form" class="view" hidden>
+  <form class="card form" id="child-form" novalidate>
+    <h2>Cuéntanos sobre tu hijo o hija</h2>
+    <p class="hint">Usamos estos datos para ajustar los límites de alerta a su edad. Puedes usar un apodo en lugar del nombre.</p>
+    <label>Nombre o apodo<input id="f-name" required maxlength="60" autocomplete="off" placeholder="Ej. Sofía"></label>
+    <div class="row">
+      <label>Género<select id="f-gender" required><option value="">Elige una opción</option><option>Niña</option><option>Niño</option><option>Prefiero no decirlo</option></select></label>
+      <label>Edad (años)<input id="f-age" type="number" inputmode="numeric" min="0" max="17" required placeholder="Ej. 7"></label>
+    </div>
+    <label>Correo para recibir alertas<input id="f-mail" type="email" required autocomplete="email" placeholder="padre@correo.com">
+      <span class="hint">Solo lo usamos para avisarte de una alerta.</span></label>
+    <label>Código del dispositivo<input id="f-dev" required maxlength="32" value="cb-01">
+      <span class="hint">Está en la base de tu CardioBuddy.</span></label>
+    <label class="check"><input type="checkbox" id="f-ok" required> Soy su madre, padre o tutor y acepto que se registren sus lecturas para este monitoreo.</label>
+    <p class="err" id="f-err" role="alert"></p>
+    <div class="tools"><button type="button" class="btn ghost" id="back-welcome">Volver</button><button class="btn" type="submit" id="f-submit">Ir al monitoreo</button></div>
+  </form>
+</section>
+
+<!-- 3. Monitoreo -->
+<section id="v-dash" class="view" hidden>
+  <div class="alert" id="alert" role="alert" hidden><span id="alert-msg"></span><button id="alert-close">Entendido</button></div>
+  <h2 id="d-title"></h2>
+  <p class="hint" id="d-sub"></p>
+  <div class="grid">
+    <div class="card hr">
+      <div class="big">
+        <svg class="heart" id="heart" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21s-8-5.2-8-11.2A4.8 4.8 0 0 1 12 7a4.8 4.8 0 0 1 8 2.8C20 15.8 12 21 12 21z"/></svg>
+        <div><div><span class="num" id="hr">--</span> <span class="unit">lpm</span></div><span class="chip info" id="hr-st">Sin datos</span></div>
+      </div>
+      <p class="hint">Frecuencia cardíaca. Alerta sobre <b id="lim"></b> lpm.</p>
+    </div>
+    <div class="card o2">
+      <div class="big"><div><div><span class="num o2n" id="o2">--</span> <span class="unit">SpO₂</span></div><span class="chip info" id="o2-st">Sin datos</span></div></div>
+      <p class="hint">Saturación de oxígeno. Alerta bajo <b id="o2lim">92</b>%.</p>
+    </div>
+    <div class="card chart">
+      <h3>Frecuencia cardíaca, último minuto</h3>
+      <svg class="plot" viewBox="0 0 600 200" role="img" aria-label="Gráfica de la frecuencia cardíaca del último minuto">
+        <line id="thr" x1="0" x2="600" stroke="var(--bad)" stroke-width="2" stroke-dasharray="6 6"/>
+        <path id="line" fill="none" stroke="var(--heart)" stroke-width="3" stroke-linejoin="round" d=""/>
+        <text x="6" y="16" fill="var(--muted)" font-size="12">200</text><text x="6" y="196" fill="var(--muted)" font-size="12">40</text>
+      </svg>
+      <p class="hint" id="empty">Esperando lecturas del dispositivo.</p>
+    </div>
+    <div class="card dev">
+      <h3>Dispositivo</h3>
+      <p class="devst"><span class="dot" id="dot"></span><span id="dev-st">Esperando conexión</span></p>
+      <p class="hint" id="dev-id"></p>
+    </div>
+    <div class="card log">
+      <h3>Eventos y alertas</h3>
+      <ul class="events" id="events"></ul>
+    </div>
+  </div>
+  <div class="tools"><button class="btn ghost" id="edit">Editar datos</button></div>
+  <p class="note">Los límites por edad son orientativos y no sustituyen el criterio del médico. CardioBuddy no es un dispositivo médico.</p>
+</section>
+</main>
+<script src="/static/app.js"></script>
+</body>
+</html>
